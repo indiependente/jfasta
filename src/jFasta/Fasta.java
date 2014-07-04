@@ -1,24 +1,14 @@
 package jFasta;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
-import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.logging.Logger;
 
@@ -221,6 +211,8 @@ public class Fasta
 
 		SmithWaterman sw = new SmithWaterman(targetQuery, targetReference);
 		System.out.println("Total Alignment Score: " + sw.computeSmithWaterman());
+		sw = null;
+		System.gc();
 		
 	}
 
@@ -341,7 +333,7 @@ public class Fasta
 
 	public static void main(String[] args) 
 	{
-		/*
+		
 		try {
 			
 			String queryFile = "genomes/short_Bsn5.fa";
@@ -349,11 +341,11 @@ public class Fasta
 			
 			CharSequence seq1 = new CharSequence(new BufferedReader(new FileReader(queryFile)));
 			CharSequence seq2 = new CharSequence(new BufferedReader(new FileReader(referenceFile)));
-			*/
-			Fasta fas = Fasta.getInstance().setup(2, 3, "CCATCGCCATCG", "GCATCGGC");
+			
+			Fasta fas = Fasta.getInstance().setup(2, 3, seq1.toString(), seq2.toString());
 			fas.execute();
 			
-		/*	
+			
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
@@ -361,7 +353,7 @@ public class Fasta
 		} catch (InvalidSequenceException e) {
 			e.printStackTrace();
 		}
-		*/
+		
 	}
 
 }
