@@ -17,13 +17,12 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class Fasta 
 {
 
-	private static Logger logger = LoggersManager.getLogger(Fasta.class.getName());
+	private static Logger logger = Logger.getLogger(Fasta.class.getName());
 	
 	private static Fasta instance = null;
 	public static Fasta getInstance()
@@ -66,11 +65,11 @@ public class Fasta
 
 	private Fasta()
 	{
+
 	}
 
 	public Fasta setup(int k, String s1, String s2)
 	{
-		LoggersManager.disableAll();
 		reference = s1;
 		query = s2;
 		ktup = k;
@@ -132,8 +131,11 @@ public class Fasta
 					diagonals.remove(key);
 				i++;
 			}
+			
 		}
 		System.gc();
+		
+		
 	}
 
 
@@ -144,7 +146,6 @@ public class Fasta
 
 		findKTuples(reference, matchesInRef);
 		findKTuples(query, matchesInQuery);
-		
 		TreeSet<HotSpot> hotspots = new TreeSet<HotSpot>();
 		for (String str : matchesInRef.keySet())
 		{
@@ -306,8 +307,25 @@ public class Fasta
 
 	public static void main(String[] args) 
 	{
-		Fasta fas = Fasta.getInstance().setup(2, "CCATCGCCATCG", "CCATCGCCATCG");
-		fas.execute();
+		try {
+			String queryFile = "genomes/short_Bsn5.fa";
+			String referenceFile = "genomes/short_QB928.fa";
+			
+			CharSequence seq1 = new CharSequence(new BufferedReader(new FileReader(queryFile)));
+			CharSequence seq2 = new CharSequence(new BufferedReader(new FileReader(referenceFile)));
+			
+			Fasta fas = Fasta.getInstance().setup(2, seq1.toString(), seq2.toString());
+			fas.execute();
+			
+			
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (InvalidSequenceException e) {
+			e.printStackTrace();
+		}
+		
 	}
 
 }
