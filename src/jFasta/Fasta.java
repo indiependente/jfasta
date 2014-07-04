@@ -38,7 +38,10 @@ public class Fasta
 	public static final int BEST_DIAGONALS = 10;
 
 	private int ktup;
-	private String reference, query;
+	
+	/* Considering a band of - w/2 , + w/2 */
+	private int width;
+	private String reference, query, targetReference, targetQuery;
 	
 	private Diagonal bestDiagonal;
 
@@ -51,11 +54,14 @@ public class Fasta
 
 	}
 
-	public Fasta setup(int k, String s1, String s2)
+	public Fasta setup(int k, int w, String s1, String s2)
 	{
 		reference = s1;
 		query = s2;
 		ktup = k;
+		width = (w > 16) ? 0 : w;
+		if (w <= 0)
+			throw new RuntimeException("Width must be between 1 and 16."); ;
 		bestDiagonal = null;
 		diagonals = new HashMap<Integer, Diagonal>();
 		return this;
@@ -217,8 +223,14 @@ public class Fasta
 	}
 
 	private void joinDiagonals() {
-		// TODO Auto-generated method stub
-
+		int[] bounds = bestDiagonal.getDiagonalBounds();
+		int halfW = width / 2;
+		int queryStart = bounds[0] - halfW + (Math.abs(bounds[0] - halfW));
+		int refStart = bounds[1] - halfW + (Math.abs(bounds[1] - halfW));
+		int queryEnd = bounds[2] + halfW - (((bounds[2] + halfW) > (query.length() - 1))? Math.abs((bounds[2] + halfW) - query.length()-1) : 0);
+		int refEnd = bounds[3] + halfW - (((bounds[3] + halfW) > (reference.length() - 1))? Math.abs((bounds[3] + halfW) - reference.length()-1) : 0);
+		targetQuery = query.substring(queryStart, queryEnd + 1);
+		targetReference = reference.substring(refStart, refEnd + 1);
 	}
 
 	private void applySubstitutionMatrix() {
@@ -327,18 +339,19 @@ public class Fasta
 
 	public static void main(String[] args) 
 	{
+		/*
 		try {
+			
 			String queryFile = "genomes/short_Bsn5.fa";
 			String referenceFile = "genomes/short_QB928.fa";
 			
 			CharSequence seq1 = new CharSequence(new BufferedReader(new FileReader(queryFile)));
 			CharSequence seq2 = new CharSequence(new BufferedReader(new FileReader(referenceFile)));
-			
-			System.out.println("starting...");
-			Fasta fas = Fasta.getInstance().setup(2, seq1.toString(), seq2.toString());
+			*/
+			Fasta fas = Fasta.getInstance().setup(2, 3, "CCATCGCCATCG", "GCATCGGC");
 			fas.execute();
 			
-			
+		/*	
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
@@ -346,7 +359,7 @@ public class Fasta
 		} catch (InvalidSequenceException e) {
 			e.printStackTrace();
 		}
-		
+		*/
 	}
 
 }
