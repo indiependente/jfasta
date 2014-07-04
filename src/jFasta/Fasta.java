@@ -2,6 +2,7 @@ package jFasta;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -15,6 +16,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.logging.Logger;
@@ -61,6 +63,33 @@ public class Fasta
 	    }
 	    return result;
 	}
+	
+	public static <K, T, V extends Set<? super T>> Map<K, V> sortByValueSize( Map<K, V> map )
+	{
+	    List<Map.Entry<K, V>> list = new LinkedList<>( map.entrySet() );
+	    Collections.sort( list, new Comparator<Map.Entry<K, V>>()
+	    {
+	        @Override
+	        public int compare( Map.Entry<K, V> o1, Map.Entry<K, V> o2 )
+	        {
+	            int l1 = o1.getValue().size();
+	            int l2 = o2.getValue().size();
+	            if (l1 > l2)
+	            	return -1;
+	            else if (l1 < l2)
+	            	return 1;
+	            else
+	            	return 0;
+	        }
+	    } );
+	
+	    Map<K, V> result = new LinkedHashMap<>();
+	    for (Map.Entry<K, V> entry : list)
+	    {
+	        result.put( entry.getKey(), entry.getValue() );
+	    }
+	    return result;
+	}
 
 
 	private Fasta()
@@ -80,17 +109,21 @@ public class Fasta
 
 	public void execute()
 	{
+		Profiler p = new Profiler("Fasta::execute");
+		
 		findKTuples();
 		
 		makeSumTable();
 		
 		applySubstitutionMatrix();
 		
-		System.out.println(selectBestDiagonal());
+		selectBestDiagonal();
 		
 		joinDiagonals();
 		
 		performSmithWaterman();
+		
+		p.end();
 	}
 
 	private Diagonal selectBestDiagonal() 
@@ -141,12 +174,15 @@ public class Fasta
 
 	private void findKTuples() 
 	{
+		Profiler p = new Profiler("Fasta::findKTuples");
 		HashMap<String, ArrayList<Integer>> matchesInRef = new HashMap<String, ArrayList<Integer>>();
 		HashMap<String, ArrayList<Integer>> matchesInQuery = new HashMap<String, ArrayList<Integer>>();
 
 		findKTuples(reference, matchesInRef);
 		findKTuples(query, matchesInQuery);
-		TreeSet<HotSpot> hotspots = new TreeSet<HotSpot>();
+//		TreeSet<HotSpot> hotspots = new TreeSet<HotSpot>();
+		
+		Map<Integer, TreeSet<HotSpot>> hotspots = new HashMap<Integer, TreeSet<HotSpot>>();	
 		for (String str : matchesInRef.keySet())
 		{
 			if (matchesInQuery.containsKey(str))
@@ -158,18 +194,29 @@ public class Fasta
 				{
 					for (int i : listQuery)
 					{
+						int diagId = i - j;
 						HotSpot hs = new HotSpot(i, j);
-						hotspots.add(hs);
+						if (!hotspots.containsKey(diagId))
+							hotspots.put(diagId, new TreeSet<HotSpot>());
+						hotspots.get(diagId).add(hs);
 					}
 				}
 			}
 		}
-		for (HotSpot h : hotspots)
+		hotspots = sortByValueSize(hotspots);
+		int i = 0;
+		for (Entry<Integer, TreeSet<HotSpot>> e : hotspots.entrySet())
 		{
-			Diagonal dlg = getDiagonal(h.getI() - h.getJ());
-			logger.info("\nWorking on diagonal " + dlg.getDiagonalId() + "...adding hotspot " + h);
-			dlg.addHotSpot(h);
+			if (i > BEST_DIAGONALS)
+				break;
+			Diagonal dlg = getDiagonal(e.getKey());
+			for (HotSpot h : e.getValue())
+				dlg.addHotSpot(h);
+			i++;
 		}
+		hotspots = null;
+		p.end();
+		System.gc();
 	}
 
 	public Diagonal getDiagonal(int id)
@@ -181,6 +228,8 @@ public class Fasta
 
 	private void findKTuples(String str, HashMap<String, ArrayList<Integer>> matches)
 	{
+		Profiler p = new Profiler("Fasta::findKTuples::internal");
+
 		int n = str.length();
 		for (int i = 0; i < (n - ktup + 1); i++)
 		{
@@ -195,6 +244,9 @@ public class Fasta
 				matches.get(sub).add(i);
 			}
 		}
+		
+		p.end();
+		
 	}
 
 
@@ -216,12 +268,13 @@ public class Fasta
 	}
 
 	private void applySubstitutionMatrix() {
+		Profiler p = new Profiler("Fasta::applySubstitutionMatrix");
+
 		try 
 		{
 			ScoringScheme scoringMatrix = new ScoringMatrix(new BufferedReader(new FileReader("./data/pam250.txt")));
 			for (int key : diagonals.keySet())
 			{
-				logger.info("analysing dlg: " + key);
 				
 				for (DiagonalRun run : diagonals.get(key).getDiagonalRuns())
 				{
@@ -235,7 +288,6 @@ public class Fasta
 						score += scoringMatrix.scoreSubstitution(strRef.charAt(i), strQuery.charAt(i));
 						i++;
 					}
-					logger.info("score for " + strRef + " = " + score);
 					run.increaseScore(score);
 //					if (init1 < score)
 //						init1 = score;
@@ -246,6 +298,8 @@ public class Fasta
 		{
 			e.printStackTrace();
 		} 
+		
+		p.end();
 	}
 
 
@@ -314,6 +368,7 @@ public class Fasta
 			CharSequence seq1 = new CharSequence(new BufferedReader(new FileReader(queryFile)));
 			CharSequence seq2 = new CharSequence(new BufferedReader(new FileReader(referenceFile)));
 			
+			System.out.println("starting...");
 			Fasta fas = Fasta.getInstance().setup(2, seq1.toString(), seq2.toString());
 			fas.execute();
 			
