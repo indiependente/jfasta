@@ -218,8 +218,10 @@ public class Fasta
 
 
 	private void performSmithWaterman() {
-		// TODO Auto-generated method stub
 
+		SmithWaterman sw = new SmithWaterman(targetQuery, targetReference);
+		System.out.println("Total Alignment Score: " + sw.computeSmithWaterman());
+		
 	}
 
 	private void joinDiagonals() {
