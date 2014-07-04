@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -42,6 +43,8 @@ public class Fasta
 	private Diagonal bestDiagonal;
 
 	private Map<Integer, Diagonal> diagonals;
+
+	private static final String PAM250_CONFIG_FILE = "./data/pam250.txt";
 
 	private Fasta()
 	{
@@ -220,10 +223,11 @@ public class Fasta
 
 	private void applySubstitutionMatrix() {
 		Profiler p = new Profiler("Fasta::applySubstitutionMatrix");
-
+		Reader fileReader = null;
 		try 
 		{
-			ScoringScheme scoringMatrix = new ScoringMatrix(new BufferedReader(new FileReader("./data/pam250.txt")));
+			fileReader = new FileReader(PAM250_CONFIG_FILE);
+			ScoringScheme scoringMatrix = new ScoringMatrix(new BufferedReader(fileReader));
 			for (int key : diagonals.keySet())
 			{
 				
@@ -232,12 +236,9 @@ public class Fasta
 					String strRef = run.extractStringFromReference(reference);
 					String strQuery = run.extractStringFromQuery(query);
 					int score = 0;
-					int i = 0;
-					int l = strRef.length();
-					while (i < l)
+					for (int i = 0, l = strRef.length(); i < l; i++)
 					{
 						score += scoringMatrix.scoreSubstitution(strRef.charAt(i), strQuery.charAt(i));
-						i++;
 					}
 					run.increaseScore(score);
 //					if (init1 < score)
@@ -249,7 +250,21 @@ public class Fasta
 		{
 			e.printStackTrace();
 		} 
-		
+		finally
+		{
+			if (fileReader != null) 
+			{
+				try
+				{
+					fileReader.close();
+				}
+				catch (IOException e) 
+				{
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
 		p.end();
 	}
 
