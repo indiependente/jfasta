@@ -2,6 +2,7 @@ package jFasta;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -307,8 +308,25 @@ public class Fasta
 
 	public static void main(String[] args) 
 	{
-		Fasta fas = Fasta.getInstance().setup(2, "CCATCGCCATCG", "GCATCGGC");
-		fas.execute();
+		try {
+			String queryFile = "genomes/short_Bsn5.fa";
+			String referenceFile = "genomes/short_QB928.fa";
+			
+			CharSequence seq1 = new CharSequence(new BufferedReader(new FileReader(queryFile)));
+			CharSequence seq2 = new CharSequence(new BufferedReader(new FileReader(referenceFile)));
+			
+			Fasta fas = Fasta.getInstance().setup(2, seq1.toString(), seq2.toString());
+			fas.execute();
+			
+			
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (InvalidSequenceException e) {
+			e.printStackTrace();
+		}
+		
 	}
 
 }
