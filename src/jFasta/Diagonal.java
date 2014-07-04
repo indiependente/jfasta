@@ -5,8 +5,7 @@ import java.util.logging.Logger;
 
 public class Diagonal implements Comparable<Diagonal>
 {
-	private static Logger logger = Logger.getLogger(Diagonal.class.getName());
-	
+	private static Logger logger = LoggersManager.getLogger(Diagonal.class.getName());	
 	
 	@Override
 	public String toString() {
