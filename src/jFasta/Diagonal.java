@@ -83,7 +83,6 @@ public class Diagonal implements Comparable<Diagonal>
 	{
 		if (runs.size() == 0)
 		{
-			logger.info("runs empty...");
 			DiagonalRun run = new DiagonalRun(hs.getI(), hs.getJ());
 			run.addHotSpot(hs);	
 			runs.add(run);
@@ -95,7 +94,6 @@ public class Diagonal implements Comparable<Diagonal>
 			{
 				if(canExtend(hs, r))
 				{
-					logger.info("can extend");
 					runs.get(runs.size() - 1).addHotSpot(hs);
 					fallback = false;
 					break;
@@ -106,7 +104,6 @@ public class Diagonal implements Comparable<Diagonal>
 				DiagonalRun run = new DiagonalRun(hs.getI(), hs.getJ());
 				run.addHotSpot(hs);	
 				runs.add(run);
-				logger.info("adding new dr");
 			}
 		}
 		increaseScore();

@@ -16,6 +16,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.logging.Logger;
@@ -87,6 +88,8 @@ public class Fasta
 
 	public void execute()
 	{
+		Profiler p = new Profiler("Fasta::execute");
+		
 		findKTuples();
 		
 		makeSumTable();
@@ -98,6 +101,8 @@ public class Fasta
 		joinDiagonals();
 		
 		performSmithWaterman();
+		
+		p.end();
 	}
 
 	private Diagonal selectBestDiagonal() 
@@ -127,7 +132,7 @@ public class Fasta
 
 	private void makeSumTable() 
 	{
-		diagonals = sortByValue(diagonals);
+		diagonals = Utils.sortByValue(diagonals);
 		
 		if (diagonals.size() > BEST_DIAGONALS)
 		{
@@ -148,12 +153,15 @@ public class Fasta
 
 	private void findKTuples() 
 	{
+		Profiler p = new Profiler("Fasta::findKTuples");
 		HashMap<String, ArrayList<Integer>> matchesInRef = new HashMap<String, ArrayList<Integer>>();
 		HashMap<String, ArrayList<Integer>> matchesInQuery = new HashMap<String, ArrayList<Integer>>();
 
 		findKTuples(reference, matchesInRef);
 		findKTuples(query, matchesInQuery);
-		TreeSet<HotSpot> hotspots = new TreeSet<HotSpot>();
+//		TreeSet<HotSpot> hotspots = new TreeSet<HotSpot>();
+		
+		Map<Integer, TreeSet<HotSpot>> hotspots = new HashMap<Integer, TreeSet<HotSpot>>();	
 		for (String str : matchesInRef.keySet())
 		{
 			if (matchesInQuery.containsKey(str))
@@ -165,18 +173,29 @@ public class Fasta
 				{
 					for (int i : listQuery)
 					{
+						int diagId = i - j;
 						HotSpot hs = new HotSpot(i, j);
-						hotspots.add(hs);
+						if (!hotspots.containsKey(diagId))
+							hotspots.put(diagId, new TreeSet<HotSpot>());
+						hotspots.get(diagId).add(hs);
 					}
 				}
 			}
 		}
-		for (HotSpot h : hotspots)
+		hotspots = Utils.sortByValueSize(hotspots);
+		int i = 0;
+		for (Entry<Integer, TreeSet<HotSpot>> e : hotspots.entrySet())
 		{
-			Diagonal dlg = getDiagonal(h.getI() - h.getJ());
-			logger.info("\nWorking on diagonal " + dlg.getDiagonalId() + "...adding hotspot " + h);
-			dlg.addHotSpot(h);
+			if (i > BEST_DIAGONALS)
+				break;
+			Diagonal dlg = getDiagonal(e.getKey());
+			for (HotSpot h : e.getValue())
+				dlg.addHotSpot(h);
+			i++;
 		}
+		hotspots = null;
+		p.end();
+		System.gc();
 	}
 
 	public Diagonal getDiagonal(int id)
@@ -188,6 +207,8 @@ public class Fasta
 
 	private void findKTuples(String str, HashMap<String, ArrayList<Integer>> matches)
 	{
+		Profiler p = new Profiler("Fasta::findKTuples::internal");
+
 		int n = str.length();
 		for (int i = 0; i < (n - ktup + 1); i++)
 		{
@@ -202,6 +223,9 @@ public class Fasta
 				matches.get(sub).add(i);
 			}
 		}
+		
+		p.end();
+		
 	}
 
 
@@ -229,6 +253,8 @@ public class Fasta
 	}
 
 	private void applySubstitutionMatrix() {
+		Profiler p = new Profiler("Fasta::applySubstitutionMatrix");
+
 		try 
 		{
 			ScoringScheme scoringMatrix = new ScoringMatrix(new BufferedReader(new FileReader("./data/pam250.txt")));
@@ -259,6 +285,8 @@ public class Fasta
 		{
 			e.printStackTrace();
 		} 
+		
+		p.end();
 	}
 
 
