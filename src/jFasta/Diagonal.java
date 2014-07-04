@@ -119,5 +119,19 @@ public class Diagonal implements Comparable<Diagonal>
 				|| (first.in(hs.getI()+1, hs.getJ()+1));
 	}
 	
+	/**
+	 * Indexes of the diagonal start and end in the strings 
+	 * @return An array containing 4 elements. The first two are the starting point of the query (array[0]) and reference (query[1]).
+	 * The last two are the ending point of the query (array[2]) and reference (query[3]).
+	 */
+	public int[] getDiagonalBounds(){
+		
+		return new int[]{
+				runs.get(0).getI(),
+				runs.get(0).getJ(),
+				runs.get(runs.size()-1).getLastHotSpot().getI() + Fasta.getInstance().getKTup() - 1,
+				runs.get(runs.size()-1).getLastHotSpot().getJ() + Fasta.getInstance().getKTup() - 1
+		};
+	}
 
 }
