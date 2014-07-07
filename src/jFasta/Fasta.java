@@ -57,6 +57,13 @@ public class Fasta
 		return this;
 	}
 
+	public void finalize()
+	{
+		diagonals.clear();
+		bestDiagonal = null;
+		diagonals = null;
+	}
+	
 	public void execute()
 	{
 		Profiler p = new Profiler("Fasta::execute");
@@ -164,6 +171,11 @@ public class Fasta
 				dlg.addHotSpot(h);
 			i++;
 		}
+		hotspots.clear();
+		matchesInQuery.clear();
+		matchesInRef.clear();
+		matchesInQuery = null;
+		matchesInRef = null;
 		hotspots = null;
 		p.end();
 		System.gc();
@@ -336,13 +348,13 @@ public class Fasta
 		
 		try {
 			
-			String queryFile = "genomes/short_Bsn5.fa";
-			String referenceFile = "genomes/short_QB928.fa";
+			String queryFile = "genomes/Gen_Bacillus_subtilis_BSn5_chromosome.txt"; //genomes/short_Bsn5.fa";
+			String referenceFile = "genomes/GEN_Bacillus_subtilis_QB928.txt"; //"genomes/short_QB928.fa";
 			
 			CharSequence seq1 = new CharSequence(new BufferedReader(new FileReader(queryFile)));
 			CharSequence seq2 = new CharSequence(new BufferedReader(new FileReader(referenceFile)));
 			
-			Fasta fas = Fasta.getInstance().setup(2, 3, seq1.toString(), seq2.toString());
+			Fasta fas = Fasta.getInstance().setup(5, 16, seq1.toString(), seq2.toString());
 			fas.execute();
 			
 			

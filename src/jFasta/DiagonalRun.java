@@ -23,6 +23,12 @@ public class DiagonalRun
 		this.score = 0;
 		hotSpostList = new ArrayList<HotSpot>();
 	}
+	
+	public void finalize()
+	{
+		hotSpostList.clear();
+		hotSpostList = null;
+	}
 
 	public int getId() {
 		return id;

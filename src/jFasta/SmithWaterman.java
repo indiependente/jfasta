@@ -39,6 +39,11 @@ public class SmithWaterman {
 				matrix[i][j] = 0;
 
 	}
+	
+	public void finalize()
+	{
+		matrix = null;
+	}
 
 	// returns the alignment score
 	public int computeSmithWaterman() {
@@ -138,6 +143,7 @@ public class SmithWaterman {
 
 		// print alignment
 		System.out.println(alignOne + "\n" + alignTwo);
+		backActions.clear();
 		return longest;
 	}
 
