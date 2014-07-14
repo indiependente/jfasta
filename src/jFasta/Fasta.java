@@ -345,18 +345,24 @@ public class Fasta
 
 	public static void main(String[] args) 
 	{
-		
+		final int INPUT_NUMBER = 2;
 		try {
 			
-			String queryFile = "genomes/Gen_Bacillus_subtilis_BSn5_chromosome.txt"; //genomes/short_Bsn5.fa";
-			String referenceFile = "genomes/GEN_Bacillus_subtilis_QB928.txt"; //"genomes/short_QB928.fa";
+			if (args.length != INPUT_NUMBER)
+				{
+					logger.severe("Usage: java -jar filename1 filename2");
+					System.exit(1);
+				}
+			
+			String queryFile = args[0];
+			String referenceFile = args[1];
 			
 			CharSequence seq1 = new CharSequence(new BufferedReader(new FileReader(queryFile)));
 			CharSequence seq2 = new CharSequence(new BufferedReader(new FileReader(referenceFile)));
 			
 			Fasta fas = Fasta.getInstance().setup(5, 16, seq1.toString(), seq2.toString());
 			fas.execute();
-			
+
 			
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
